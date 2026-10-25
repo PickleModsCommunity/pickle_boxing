@@ -1,3 +1,4 @@
+local knockoutGeneration=0
 local fightThread = nil
 local responseCooldown = false
 local responseCooldownBlock = false
@@ -39,6 +40,8 @@ end
 
 function StartFightKnockout()
     if fighterKnockedOut then return end
+    knockoutGeneration=knockoutGeneration+1
+    local generation=knockoutGeneration
     fighterKnockedOut = true
     local ped = PlayerPedId()
     SetCamEffect(1)
@@ -52,7 +55,7 @@ function StartFightKnockout()
             recover = recoverRequired
         })
         CreateThread(function() 
-            while fighterKnockedOut do
+            while fighterKnockedOut and generation==knockoutGeneration do
                 secondsLeft = secondsLeft - 1
                 if secondsLeft <= 0 then
                     RecoverFightKnockout(true)
@@ -61,9 +64,10 @@ function StartFightKnockout()
                 Wait(1000)
             end
         end)
-        while fighterKnockedOut do 
+        while fighterKnockedOut and generation==knockoutGeneration do
             SetPedToRagdoll(ped, 1000, 1000)
             if IsControlJustPressed(1, 51) then
+                TriggerServerEvent("pickle_boxing:recoveryKey")
                 SendNUIMessage({
                     type = "knockoutKeypress"
                 })
@@ -88,8 +92,16 @@ function RecoverFightKnockout(fail)
     TriggerServerEvent("pickle_boxing:knockoutResult", not fail)
 end
 
-function StopFightThread() 
-    fightThread = false
+function StopFightThread()
+    knockoutGeneration=knockoutGeneration+1
+    fightThread=false
+    fighterKnockedOut=false
+    responseCooldown=false
+    SendNUIMessage({type='knockoutStop'})
+    SetCamEffect(0)
+    TransitionFromBlurred(0)
+    SetEntityInvincible(PlayerPedId(),false)
+    FreezeEntityPosition(PlayerPedId(),false)
 end
 
 function CreateFightThread()
@@ -114,7 +126,7 @@ function CreateFightThread()
             end
             DisableControlAction(0, 21, true)
             SetEntityHealth(ped, 200)
-            SetPlayerLockon(targetPlayer, true)
+            SetPlayerLockon(playerId, true)
             Wait(0)
         end
     end)
@@ -170,3 +182,12 @@ AddEventHandler("onResourceStop", function(name)
     if name ~= GetCurrentResourceName() then return end
     RemoveBoxingGlove()
 end)
+local function cleanup()
+    StopFightThread(); RemoveBoxingGlove()
+    if StopScene then StopScene(true) end
+    ClearPedTasks(PlayerPedId())
+    SetNuiFocus(false,false)
+    for _,t in ipairs({'hideStats','hideScoreboard','hideFighterStats','knockoutStop'}) do SendNUIMessage({type=t}) end
+end
+RegisterNetEvent('pickle_boxing:cleanupFighter',cleanup)
+AddEventHandler('onResourceStop',function(name) if name==GetCurrentResourceName() then cleanup() end end)

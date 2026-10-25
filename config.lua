@@ -1,6 +1,6 @@
 Config = {}
 
-Config.Debug = true
+Config.Debug = false
 
 Config.Language = "en" -- Language to use.
 
@@ -13,7 +13,7 @@ Config.InteractDistance = 2.0 -- Interaction distance.
 Config.EmoteCommandPrefix = "e" -- Emote command prefix (used for in-fight emotes).
 
 Config.Photos = {
-    url = "PUT_WEBHOOK_HERE", -- By default, uses discord to host images.
+    -- Configure the private upload endpoint in server_config.lua.
     uploadProtocol = 'files[]',
     ResponseHandler = function(resp) -- Return URL from response.
        return resp.attachments[1].url
