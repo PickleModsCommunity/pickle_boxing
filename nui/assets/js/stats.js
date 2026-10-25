@@ -6,41 +6,41 @@ function ShowStats(data) {
     let format = `
         <div>
             <img src="assets/images/logo.png"/>
-            <div>${data.event.toUpperCase()}</div>
+            <div>${escapeBoxing(data.event.toUpperCase())}</div>
         </div>
         <div>
             <div class="sc-fighter">
-                <div style="background-image: url(${data.fighters[0].image})"></div>
+                <div style="background-image: url(${escapeBoxing(data.fighters[0].image)})"></div>
                 <div>
-                    <div>${data.fighters[0].name}</div>
+                    <div>${escapeBoxing(data.fighters[0].name)}</div>
                 </div>
             </div>
             <div class="sc-stats">
                 <div>
-                    <div>${data.fighters[0].age}</div>
+                    <div>${escapeBoxing(data.fighters[0].age)}</div>
                     <div>AGE</div>
-                    <div>${data.fighters[1].age}</div>
+                    <div>${escapeBoxing(data.fighters[1].age)}</div>
                 </div>
                 <div>
-                    <div>${records[0]}</div>
+                    <div>${escapeBoxing(records[0])}</div>
                     <div>RECORD</div>
-                    <div>${records[1]}</div>
+                    <div>${escapeBoxing(records[1])}</div>
                 </div>
                 <div>
-                    <div>${data.fighters[0].height}</div>
+                    <div>${escapeBoxing(data.fighters[0].height)}</div>
                     <div>HEIGHT</div>
-                    <div>${data.fighters[1].height}</div>
+                    <div>${escapeBoxing(data.fighters[1].height)}</div>
                 </div>
                 <div>
-                    <div>${data.fighters[0].weight}</div>
+                    <div>${escapeBoxing(data.fighters[0].weight)}</div>
                     <div>WEIGHT</div>
-                    <div>${data.fighters[1].weight}</div>
+                    <div>${escapeBoxing(data.fighters[1].weight)}</div>
                 </div>
             </div>
             <div class="sc-fighter">
-                <div style="background-image: url(${data.fighters[1].image})"></div>
+                <div style="background-image: url(${escapeBoxing(data.fighters[1].image)})"></div>
                 <div>
-                    <div>${data.fighters[1].name}</div>
+                    <div>${escapeBoxing(data.fighters[1].name)}</div>
                 </div>
             </div>
         </div>

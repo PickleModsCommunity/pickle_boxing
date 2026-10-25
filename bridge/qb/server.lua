@@ -7,15 +7,19 @@ function ShowNotification(target, text)
 end
 
 function GetIdentifier(source)
-    local xPlayer = QBCore.Functions.GetPlayer(source).PlayerData
-    return xPlayer.citizenid 
+    local player=QBCore.Functions.GetPlayer(source)
+    local xPlayer=player and player.PlayerData
+    return xPlayer and xPlayer.citizenid
 end
 
 function CheckPermission(source, permission)
+    if type(permission)~="table" then return false end
     if permission.type == "ace" then
         return IsPlayerAceAllowed(source, permission.name)
     elseif permission.type == "job" then
-        local xPlayer = QBCore.Functions.GetPlayer(source).PlayerData
+        local player=QBCore.Functions.GetPlayer(source)
+    local xPlayer=player and player.PlayerData
+        if not xPlayer or not xPlayer.job then return false end
         local name = xPlayer.job.name
         local rank = xPlayer.job.grade.level
         return (permission.name == name and permission.rank <= rank)

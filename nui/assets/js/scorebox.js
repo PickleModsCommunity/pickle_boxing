@@ -19,21 +19,21 @@ function ShowScoreboard(data) {
     let template = `
         <div>
             <div>
-                <div>${fight.fighters[0].name}</div>
+                <div>${escapeBoxing(fight.fighters[0].name)}</div>
             </div>
             <div class="as-scorebox">
-                <div id="fighter-0-score" class="box red">${fight.fighters[0].hits}</div>
+                <div id="fighter-0-score" class="box red">${escapeBoxing(fight.fighters[0].hits)}</div>
                 <img src="assets/images/logo.png"/>
-                <div id="scorebox-time">${ConvertMinutes(fight.game.roundTime)}</div>
-                <div>${round}</div>
-                <div id="fighter-1-score" class="box blue">${fight.fighters[1].hits}</div>
+                <div id="scorebox-time">${escapeBoxing(ConvertMinutes(fight.game.roundTime))}</div>
+                <div>${escapeBoxing(round)}</div>
+                <div id="fighter-1-score" class="box blue">${escapeBoxing(fight.fighters[1].hits)}</div>
             </div>
             <div>
-                <div>${fight.fighters[1].name}</div>
+                <div>${escapeBoxing(fight.fighters[1].name)}</div>
             </div>
         </div>
         <div>
-            <div>${fight.settings.event.toUpperCase() || "MAIN EVENT"}</div>
+            <div>${escapeBoxing(fight.settings.event.toUpperCase() || "MAIN EVENT")}</div>
         </div>
     `
     ResumeScoreboard(fight.game.roundTime);

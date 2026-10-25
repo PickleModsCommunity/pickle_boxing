@@ -19,9 +19,8 @@ function OpenFighterSettings(index, cb)
             options[#options + 1] = {type = 'checkbox', label = _L("fighter_settings_retake_photo"), default = false}
         end
         local input
-        repeat 
-            input = lib.inputDialog(_L("fighter_settings_title"), options)
-        until input
+        input = lib.inputDialog(_L("fighter_settings_title"), options)
+        if not input then cb(nil); return end
         local info = {
             name = input[1] or result.name,
             image = result.image,
@@ -50,6 +49,7 @@ function AttemptJoinMatch(index)
             return 
         end
         OpenFighterSettings(index, function(info)
+            if not info then return end
             lib.callback("pickle_boxing:attemptJoinMatch", "", function(result, notification)
                 if notification then
                     ShowNotification(notification)
@@ -253,6 +253,9 @@ function StartIntroRingStage(matchId)
 end
 
 function StartEndMatchStage(matchId, fighters, force)
+    local participant=false
+    for _,f in ipairs(fighters or {}) do if f.source==GetPlayerServerId(PlayerId()) then participant=true end end
+    if not participant then return end
     if force then
         StopScene()
         StopFightThread()
@@ -287,7 +290,8 @@ function StartEndMatchStage(matchId, fighters, force)
         }
         local coords = match.center.coords
         local heading = match.center.heading
-        local refPed = CreateNPC(model.hash, coords.x, coords.y, coords.z, heading, false, true)
+        refPed = CreateNPC(model.hash, coords.x, coords.y, coords.z, heading, false, true)
+        if not refPed then return end
         if model.components then
             for i=1, #model.components do 
                 SetPedComponentVariation(refPed, i - 1, model.components[i][1] or 0, model.components[i][2] or 0, model.components[i][3] or 0)
@@ -380,7 +384,8 @@ function StartFightRoundStage(matchId, roundId)
         end
     end
     LocalMatches[matchId].stopRound = true
-    SetTimeout(3000, function()
+    SetTimeout(4000, function()
+        if not Matches[matchId] or not Matches[matchId].game or Matches[matchId].game.stageId~=match.game.stageId then return end
         LocalMatches[matchId].stopRound = false
         local timeLeft = match.game.roundTime
         SendNUIMessage({
@@ -407,9 +412,10 @@ end
 function EnterMatchArea(matchId)
     if not matchId then return end
     lib.callback("pickle_boxing:requestMatchData", "", function(match)
+        if not match then return end
         Matches[matchId] = match
         if match.game and match.game.currentStage == "in_round" then
-            match.game.roundTime = match.game.roundTime - 4
+            match.game.roundTime = math.max(0,match.game.roundTime)
             LocalMatches[matchId].stopRound = true
             Wait(1100)
             LocalMatches[matchId].stopRound = false
@@ -431,6 +437,7 @@ RegisterNetEvent("pickle_boxing:syncMatches", function(matches)
     Matches = matches
     for k,v in pairs(LocalMatches) do 
         DeleteInteraction(v.interact)
+        if v.blip then RemoveBlip(v.blip) end
         LocalMatches[k] = nil
     end
     for k,v in pairs(Matches) do 
@@ -478,7 +485,7 @@ end)
 
 RegisterNetEvent("pickle_boxing:updateMatch", function(matchId, match, operation) 
     Matches[matchId] = match
-    if currentMatchArea == matchId and LocalMatches[matchId].viewingFight and (operation and operation.action == "joinMatch" or operation.action == "leaveMatch" or operation.action == "toggleReady") then
+    if operation and currentMatchArea == matchId and LocalMatches[matchId] and LocalMatches[matchId].viewingFight and (operation.action == "joinMatch" or operation.action == "leaveMatch" or operation.action == "toggleReady") then
         SetTimeout(250, function()
             OpenViewFight(matchId, true)
         end)
@@ -486,6 +493,7 @@ RegisterNetEvent("pickle_boxing:updateMatch", function(matchId, match, operation
     if operation.action == "joinMatch" then
     elseif operation.action == "leaveMatch" then
     elseif operation.action == "endMatch" then
+        StopScene(true)
         if currentMatchArea == matchId then
             StartEndMatchStage(matchId, operation.values[1], operation.values[2])
         end
@@ -566,3 +574,4 @@ CreateThread(function()
         Wait(1000)
     end
 end)
+RegisterNetEvent('pickle_boxing:refresh',function() TriggerServerEvent('pickle_boxing:initializePlayer') end)

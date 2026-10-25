@@ -17,7 +17,9 @@ end
 
 function CreateVeh(modelHash, ...)
     RequestModel(modelHash)
-    while not HasModelLoaded(modelHash) do Wait(0) end
+    local deadline=GetGameTimer()+5000
+    while not HasModelLoaded(modelHash) and GetGameTimer()<deadline do Wait(0) end
+    if not HasModelLoaded(modelHash) then return nil end
     local veh = CreateVehicle(modelHash, ...)
     SetModelAsNoLongerNeeded(modelHash)
     return veh
@@ -25,7 +27,9 @@ end
 
 function CreateNPC(modelHash, ...)
     RequestModel(modelHash)
-    while not HasModelLoaded(modelHash) do Wait(0) end
+    local deadline=GetGameTimer()+5000
+    while not HasModelLoaded(modelHash) and GetGameTimer()<deadline do Wait(0) end
+    if not HasModelLoaded(modelHash) then return nil end
     local ped = CreatePed(26, modelHash, ...)
     SetModelAsNoLongerNeeded(modelHash)
     return ped
@@ -33,7 +37,9 @@ end
 
 function CreateProp(modelHash, ...)
     RequestModel(modelHash)
-    while not HasModelLoaded(modelHash) do Wait(0) end
+    local deadline=GetGameTimer()+5000
+    while not HasModelLoaded(modelHash) and GetGameTimer()<deadline do Wait(0) end
+    if not HasModelLoaded(modelHash) then return nil end
     local obj = CreateObject(modelHash, ...)
     SetModelAsNoLongerNeeded(modelHash)
     return obj
@@ -89,7 +95,6 @@ function ShowInteractText(text)
     interactCheck = true
     CreateThread(function()
         Wait(150)
-        local timer = GetGameTimer()
         interactCheck = false
         if timer ~= interactTick then 
             lib.hideTextUI()
@@ -133,6 +138,7 @@ function EnsureInteractionModel(index)
     elseif data.model and (not data.model.modelType or data.model.modelType == "ped") then
         local offset = data.model.offset or vector3(0.0, 0.0, 0.0)
         entity = CreateNPC(data.model.hash, data.coords.x + offset.x, data.coords.y + offset.y, (data.coords.z - 1.0) + offset.z, data.heading, false, true)
+        if not entity or Interactions[index]~=data then if entity then DeleteEntity(entity) end; return end
         if data.model.components then
             for i=1, #data.model.components do 
                 SetPedComponentVariation(entity, i - 1, data.model.components[i][1] or 0, data.model.components[i][2] or 0, data.model.components[i][3] or 0)
@@ -148,6 +154,7 @@ function EnsureInteractionModel(index)
     end
     FreezeEntityPosition(entity, true)
     SetEntityHeading(entity, data.heading)
+    if not Interactions[index] or Interactions[index]~=data then if entity then DeleteEntity(entity) end; return end
     Interactions[index].entity = entity
     return entity
 end
@@ -163,6 +170,7 @@ function SelectInteraction(index, selection)
     if not EnableInteraction then return end
     local pcoords = GetEntityCoords(PlayerPedId())
     local data = Interactions[index]
+    if not data then return end
     if #(data.coords - pcoords) > Config.InteractDistance then 
         return ShowNotification(_L("interact_far"))
     end
