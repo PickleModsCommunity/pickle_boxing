@@ -4,7 +4,7 @@ lua54 'yes'
 game 'gta5'
 
 name         'pickle_boxing'
-version      '1.1.1'
+version      '1.1.2'
 description  'A fight system that has boxing & mma, broadcast-style scenes, and more!'
 author       'Pickle Mods'
 
